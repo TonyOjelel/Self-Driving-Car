@@ -1,0 +1,3 @@
+Added Component: Designator=*(MPU6050)
+Added Member To Class: ClassName=Sheet1 Member=Component * MPU6050
+Added Room: Name=Sheet1

@@ -1,0 +1,5 @@
+Added Component: Designator=Arduino Uno(Arduino Uno)
+Added Component: Designator=MP1584(PCBComponent_1)
+Added Member To Class: ClassName=Sheet1 Member=Component Arduino Uno
+Added Member To Class: ClassName=Sheet1 Member=Component MP1584
+Added Room: Name=Sheet1
