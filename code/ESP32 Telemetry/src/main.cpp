@@ -2,6 +2,7 @@
 #include <HardwareSerial.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
+#include <HuskyLensMbed.h> // Include the HuskyLens library
 
 #define inputBufferSize 1000
 #define timeout 100
@@ -13,10 +14,10 @@ void WiFiEvent(WiFiEvent_t event);
 const char * udpAddress = "192.168.144.235";
 const int udpPort = 5005;
 
-//Are we currently connected?
+// Are we currently connected?
 boolean connected = false;
 
-//The udp library class
+// The udp library class
 WiFiUDP udp;
 
 uint8_t inputBuffer[inputBufferSize];
@@ -26,9 +27,12 @@ uint16_t posBuffer;
 uint8_t TeleBuffer[1000];
 uint16_t posTele;
 
-uint16_t DataLenth[5] = {0,1,2,3,720};
+uint16_t DataLenth[5] = {0, 1, 2, 3, 720};
 
-//Hagamos parpadear el led (un poco)
+// HuskyLens initialization
+// HuskyLens huskylens(Serial2); // Initialize HuskyLens on Serial2
+
+// Hagamos parpadear el led (un poco)
 void blinkLed(){
   if((millis()/10) % 10 == 0 ){
     digitalWrite(LED_BUILTIN,!digitalRead(LED_BUILTIN));
@@ -38,9 +42,9 @@ void blinkLed(){
 void receiveData();
 
 void setup(){
-  pinMode(LED_BUILTIN,OUTPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(1000000);
-  SerialTelem.begin(1000000,SERIAL_8N1,5,6); //Rx = 5, Tx = 6
+  SerialTelem.begin(1000000, SERIAL_8N1, 5, 6); // Rx = 5, Tx = 6
 
   connectToWiFi("DiverBOT_Invitados", "bucleinfinito");
   timeStart = millis();
@@ -50,7 +54,7 @@ void setup(){
   delay(2000);
   Serial.println("Antes");
 
-  udp.beginPacket(udpAddress,udpPort);
+  udp.beginPacket(udpAddress, udpPort);
   udp.printf("Hola");
   udp.endPacket();
 
@@ -61,6 +65,15 @@ void loop(){
   if(SerialTelem.available()){
     receiveData();
   }
+
+  // Handle HuskyLens data here
+  // Example: int objectCount = huskylens.count();
+  // Process object detection and color identification data as needed
+
+  // Send HuskyLens data over UDP
+  // Example: udp.beginPacket(udpAddress, udpPort);
+  //          udp.write(...); // Send HuskyLens data
+  //          udp.endPacket();
 }
 
 void connectToWiFi(const char * ssid, const char * pwd){
@@ -68,32 +81,32 @@ void connectToWiFi(const char * ssid, const char * pwd){
 
   // delete old config
   WiFi.disconnect(true);
-  //register event handler
+  // register event handler
   WiFi.onEvent(WiFiEvent);
   
-  //Initiate connection
+  // Initiate connection
   WiFi.begin(ssid, pwd);
 
   Serial.println("Waiting for WIFI connection...");
 }
 
-//wifi event handler
+// wifi event handler
 void WiFiEvent(WiFiEvent_t event){
     switch(event) {
       case SYSTEM_EVENT_STA_GOT_IP:
-          //When connected set 
+          // When connected set 
           Serial.print("WiFi connected! IP address: ");
           Serial.println(WiFi.localIP());  
-          //initializes the UDP state
-          //This initializes the transfer buffer
-          udp.begin(WiFi.localIP(),udpPort);
+          // initializes the UDP state
+          // This initializes the transfer buffer
+          udp.begin(WiFi.localIP(), udpPort);
           connected = true;
-          digitalWrite(LED_BUILTIN,HIGH);
+          digitalWrite(LED_BUILTIN, HIGH);
           break;
       case SYSTEM_EVENT_STA_DISCONNECTED:
           Serial.println("WiFi lost connection");
           connected = false;
-          digitalWrite(LED_BUILTIN,LOW);
+          digitalWrite(LED_BUILTIN, LOW);
           break;
     }
 }
@@ -121,35 +134,10 @@ void receiveData() {
     TeleBuffer[posTele] = SerialTelem.read();
   }
   
-  udp.beginPacket(udpAddress,udpPort);
+  udp.beginPacket(udpAddress, udpPort);
   udp.write(TeleBuffer, posTele);
   udp.endPacket();
-
-/*
-  if (cabecera == cab::LIDAR) {
-    uint8_t receivedBytes[bytes_cabecera1];
-    SerialTelem.readBytes(receivedBytes, bytes_cabecera1);
-    udp.beginPacket(udpAddress,udpPort);
-    udp.write(receivedBytes, bytes_cabecera1);
-    udp.endPacket();
-  } else
-  if (cabecera == cab::estado) {
-    uint8_t receivedBytes[bytes_cabecera2];
-    for (byte i=0; i<bytes_cabecera2;i++){
-      receivedBytes[i]=Serial.read();
-    }
-    SerialTelem.write(receivedBytes, bytes_cabecera2);
-    udp.beginPacket(udpAddress,udpPort);
-    udp.write(receivedBytes, bytes_cabecera2);
-    udp.endPacket();
-  } else
-  if (cabecera == cab::encoders) {
-    uint8_t receivedBytes[bytes_cabecera3];
-    for (byte i=0; i<bytes_cabecera3;i++){
-      receivedBytes[i]=Serial.read();
-    }
-    udp.beginPacket(udpAddress,udpPort);
-    udp.write(receivedBytes, bytes_cabecera3);
-    udp.endPacket();
-  }*/
 }
+
+
+

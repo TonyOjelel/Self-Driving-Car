@@ -4,10 +4,13 @@
 #include <Encoder.h>
 #include "credentials.h"
 #include "pinAssignments.h"
+#include <HuskyLensMbed.h> // Include the HuskyLens library
 
-#define ENABLE_WIFI fasle
+#define ENABLE_WIFI false
 
 #if ENABLE_WIFI == true
+#include <WiFi.h>
+#include <WiFiUdp.h>
 #include <OTAUpdate.h>
 Updater miota(80);
 #endif
@@ -42,11 +45,11 @@ void setup() {
 
   commSerial.begin(1000000, SERIAL_8N1, pinTX, pinRX);
 
-  #if ENABLE_WIFI == true
+#if ENABLE_WIFI == true
   miota.WiFiInit();
   miota.SetStaticIP(251);
   miota.OTAInit();
-  #endif
+#endif
   
   Serial.print("Time: ");
   delay(5000);
@@ -62,6 +65,9 @@ void setup() {
   miservo.Attach();
   miservo.MoveServo(0);
   timerAlarmEnable(timerHandler);
+
+  // Initialize HuskyLens here
+  // For example: HuskyLens.begin(Serial2);
 }
 
 void loop() {
@@ -89,6 +95,20 @@ void loop() {
     sendEncoder(miencoder.GetEncoder());
     prev_ms_encoder = millis() + 32;
   }
+
+  // Handle HuskyLens data here
+
+  // Handle object detection and color identification using HuskyLens
+  int objectCount = HuskyLens.count();
+  for (int i = 0; i < objectCount; i++) {
+    // Retrieve information about detected objects
+    String objectName = HuskyLens.readName(i);
+    int objectX = HuskyLens.readX(i);
+    int objectY = HuskyLens.readY(i);
+    // Process the object data as needed
+  }
+
+  // Send data over UDP for object detection and color identification results
 }
 
 void IRAM_ATTR onTimer() {
@@ -97,8 +117,8 @@ void IRAM_ATTR onTimer() {
 
 void sendEncoder(uint32_t encoder) {
   uint8_t encoderBuffer[4];
-  for (uint8_t i; i<4; i++) {
-    encoderBuffer[i] = ((encoder>>(8*i)) & 0xff);
+  for (uint8_t i; i < 4; i++) {
+    encoderBuffer[i] = ((encoder >> (8 * i)) & 0xff);
   }
   commSerial.write(7);
   commSerial.write(encoderBuffer, 4);
@@ -112,16 +132,13 @@ void sendTension(uint8_t batteryLevel) {
 void receiveData() {
   uint8_t firstByte;
   commSerial.readBytes(&firstByte, 1);
-  if (firstByte == 1)
-  {
+  if (firstByte == 1) {
     uint8_t _velocity;
     commSerial.readBytes(&_velocity, 1);
-    uint8_t _speed = (_velocity >> 1)<<1;
+    uint8_t _speed = (_velocity >> 1) << 1;
     int speed = (_velocity - _speed) ? -_speed : _speed;
     objectiveSpeed = speed;
-  } else 
-  if (firstByte == 2)
-  {
+  } else if (firstByte == 2) {
     uint8_t _angleByte;
     commSerial.readBytes(&_angleByte, 1);
     int _angle = map(_angleByte, 0, 180, -90, 90);
