@@ -6,13 +6,13 @@ This documentation provides an overview of the Arduino code used in our self-dri
 
 The HuskyLens library is included, but you need to initialize it based on your HuskyLens setup. Uncomment the HuskyLens initialization line and adjust the Serial port accordingly.
 
-WiFi and UDP communication are retained based on your previous code.
+WiFi and UDP communication are retained based on previous code.
 
 Pixy 2.0 and Arduino Nano-related code are removed.
 
 HuskyLens-related code is included to handle object detection and color identification. You will need to adapt the code to your specific HuskyLens configuration and processing needs.
 
-Make sure to install and import the HuskyLens library into your Arduino IDE before using this code.
+Make sure to install and import the HuskyLens library into your Arduino IDE.
 
 # Car stopping after 3 laps
 Additionally, the logic for stopping the car after 3 laps is included in the code
